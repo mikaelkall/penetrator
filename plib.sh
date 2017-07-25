@@ -145,7 +145,7 @@ function list_network()
 
 function view_network()
 {
-    local wifi_networks=( $(cat /tmp/wifi-01.csv | tail -n +3 | awk '{print $NF}' |egrep -o "^[a-zA-Z0-9_\-]{3,100}" |grep -v "ESSIDs") )
+    local wifi_networks=( $(cat /tmp/wifi-01.csv | tail -n +3 | awk '{print $NF}' |egrep -o "^[a-zA-Z0-9_\-]{3,100}" |grep -v "ESSIDs" | xargs) )
 
     for i in "${!wifi_networks[@]}"; do 
         printf "${LIGHTWHITE}[%s] %s\n" "$i" "${wifi_networks[$i]}"
@@ -157,11 +157,14 @@ function view_network()
     export WIFI_NETWORK="${wifi_networks[$i]}"
     echo ""
 
-    echo ${WIFI_NETWORK}
+    local bssid=$(cat /tmp/wifi-01.csv |egrep ${WIFI_NETWORK} |awk '{print $1}' |tr -d ',' | xargs)
+    export BSSID=${bssid}
 
-    airodump-ng -w ${WIFI_NETWORK} --bssid ${BSSID} -c ${CHAN} $WIFI_INTERFACE}
-    #airodump-ng -w comhem_F373AC --bssid 5C:35:3B:F3:E5:B1 -c 6 wlan0mon
+    local channel=$(cat /tmp/wifi-01.csv |egrep ${WIFI_NETWORK} |awk -F',' '{print $4}' | xargs)
+    export CHANNEL=${channel}
 
+    # Do the magic
+    ( cd /tmp && airodump-ng -w ${WIFI_NETWORK} --bssid ${BSSID} -c ${CHANNEL} ${WIFI_INTERFACE} )
 }
 
 function deauth_network()
