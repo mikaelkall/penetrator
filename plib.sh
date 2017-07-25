@@ -139,12 +139,29 @@ trim() {
 
 function list_network()
 {
+   rm -f /tmp/wifi* 2>/dev/null
    airodump-ng ${WIFI_INTERFACE} --write /tmp/wifi
 }
 
 function view_network()
 {
-       echo "view network"
+    local wifi_networks=( $(cat /tmp/wifi-01.csv | tail -n +3 | awk '{print $NF}' |egrep -o "^[a-zA-Z0-9_\-]{3,100}" |grep -v "ESSIDs") )
+
+    for i in "${!wifi_networks[@]}"; do 
+        printf "${LIGHTWHITE}[%s] %s\n" "$i" "${wifi_networks[$i]}"
+    done
+
+    color.green "${BOLD}"
+    echo -n "SELECT ➜ " 
+    read i
+    export WIFI_NETWORK="${wifi_networks[$i]}"
+    echo ""
+
+    echo ${WIFI_NETWORK}
+
+    airodump-ng -w ${WIFI_NETWORK} --bssid ${BSSID} -c ${CHAN} $WIFI_INTERFACE}
+    #airodump-ng -w comhem_F373AC --bssid 5C:35:3B:F3:E5:B1 -c 6 wlan0mon
+
 }
 
 function deauth_network()
