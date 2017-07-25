@@ -1,0 +1,58 @@
+#!/bin/bash
+# Mikael Kall
+#
+# Wifi hacking script 
+
+# Jump to script folder.
+SCRIPT_DIR=$(dirname $0)
+cd ${SCRIPT_DIR}
+
+# Default settings.
+SCRIPT_BASE=$(pwd)
+
+# Load functions library.
+if [ -e "./plib.sh" ]; then
+    plib="./plib.sh"
+else
+    plib=$(which plib.sh)
+    if [ -z "${plib}" ]; then 
+        echo "error plib.sh cannot be found"
+        exit 1
+    fi
+fi
+
+# Load library
+. ${plib}
+
+function main()
+{
+   color.lightgreen ""
+   ARG=${1}
+   case ${ARG} in
+   l|list)
+	list_network $@
+   ;;
+
+   v|view)
+	view_network $@
+   ;;
+
+   d|deauth)
+	deauth_network $@
+   ;;
+
+   *)
+       print_usage
+   ;;
+   esac
+
+   exit 0
+}
+
+####
+## Entry point
+####
+NAME=$(basename "$0")
+if [ "$NAME" == "penetrator" ]; then
+    main $@
+fi
