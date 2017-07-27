@@ -26,6 +26,8 @@ fi
 
 function main()
 {
+    cleanup
+
     while :
     do
         print_usage

