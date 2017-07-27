@@ -22,13 +22,7 @@ LIGHTCYAN="\e[96m"
 LIGHTWHITE="\e[97m"
 
 # Special codes
-#BOLD=$(tput bold)
-#UNDERLINE=$(tput sgr 0 1)
-#RESET=$(tput sgr0)
-BOLD=""
-UNDERLINE=""
-RESET=""
-
+RESET="\e[0m"
 
 function color.default()
 {
@@ -147,12 +141,14 @@ function view_network()
 {
     local wifi_networks=( $(cat /tmp/wifi-01.csv | tail -n +3 | awk '{print $NF}' |egrep -o "^[a-zA-Z0-9_\-]{3,100}" |grep -v "ESSIDs" | xargs) )
 
+    echo ""
+
     for i in "${!wifi_networks[@]}"; do 
-        printf "${LIGHTWHITE}[%s] %s\n" "$i" "${wifi_networks[$i]}"
+        printf "${LIGHTWHITE}[${LIGHTRED}%s${LIGHTWHITE}] %s\n" "$i" "${wifi_networks[$i]}"
     done
 
     color.green "${BOLD}"
-    echo -n "SELECT ➜ " 
+    echo -n "➜ " 
     read i
     export WIFI_NETWORK="${wifi_networks[$i]}"
     echo ""
@@ -196,8 +192,9 @@ function print_usage()
  print_banner 
  color.green "${BOLD}General Options${RESET}"
  color.default ""
- color.red "${BOLD}${LIGHTWHITE}l${RESET}ist${RESET}${CYAN}\t|\t${LIGHTWHITE}List networks"
- color.red "${BOLD}${LIGHTWHITE}v${RESET}iew${RESET}${CYAN}\t|\t${LIGHTWHITE}View specific network"
- color.red "${BOLD}${LIGHTWHITE}d${RESET}eauth${RESET}${CYAN}\t|\t${LIGHTWHITE}Deauth client"
+ color.red "${BOLD}${LIGHTRED}l${RESET}ist${RESET}${CYAN}\t|\t${LIGHTWHITE}List networks"
+ color.red "${BOLD}${LIGHTRED}v${RESET}iew${RESET}${CYAN}\t|\t${LIGHTWHITE}View specific network"
+ color.red "${BOLD}${LIGHTRED}d${RESET}eauth${RESET}${CYAN}\t|\t${LIGHTWHITE}Deauth client"
+ color.red "${BOLD}${LIGHTRED}q${RESET}uit${RESET}${CYAN}\t|\t${LIGHTWHITE}Quit"
  color.default ""
 }

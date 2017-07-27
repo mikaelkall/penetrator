@@ -26,26 +26,33 @@ fi
 
 function main()
 {
-   color.lightgreen ""
-   ARG=${1}
-   case ${ARG} in
-   l|list)
-	list_network $@
-   ;;
+    while :
+    do
+        print_usage
+        color.lightgreen ""
+        echo -n "➜ "
+        read -n1 opt
 
-   v|view)
-	view_network $@
-   ;;
+        case "${opt}" in
 
-   d|deauth)
-	deauth_network $@
-   ;;
+            q|quit)
+                echo ""
+                exit 0
+            ;;
 
-   *)
-       print_usage
-   ;;
-   esac
+            l|list)
+	        list_network $@
+   	    ;;
 
+   	    v|view)
+	        view_network $@
+   	    ;;
+
+   	    d|deauth)
+	        deauth_network $@
+   	    ;;
+   	esac
+   done
    exit 0
 }
 
